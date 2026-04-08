@@ -1,0 +1,10 @@
+[server]
+headless = true
+maxUploadSize = 25
+
+[theme]
+base = "light"
+primaryColor = "#2E7D32"
+
+[browser]
+gatherUsageStats = false

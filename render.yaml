@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: verlofwaarde
+    runtime: docker
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /_stcore/health
+    envVars:
+      - key: APP_PASSWORD
+        sync: false
+      - key: PORT
+        value: 8501
