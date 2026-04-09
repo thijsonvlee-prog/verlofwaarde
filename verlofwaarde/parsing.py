@@ -87,7 +87,27 @@ def _coerce_float(series: pd.Series) -> pd.Series:
 
 
 def _read_first_sheet(file: IO[bytes] | str) -> pd.DataFrame:
-    return pd.read_excel(file, sheet_name=0, engine="openpyxl", dtype=object)
+    try:
+        return pd.read_excel(file, sheet_name=0, engine="openpyxl", dtype=object)
+    except TypeError:
+        # Fallback voor xlsx-bestanden met stylesheets die openpyxl niet aankan
+        # (bekend probleem op Python 3.13+). read_only mode slaat stylesheet-
+        # parsing over.
+        if hasattr(file, "seek"):
+            file.seek(0)
+        from openpyxl import load_workbook
+
+        wb = load_workbook(file, read_only=True, data_only=True)
+        ws = wb.worksheets[0]
+        data = list(ws.iter_rows(values_only=True))
+        wb.close()
+        if not data:
+            return pd.DataFrame()
+        headers = [
+            str(h) if h is not None else f"col_{i}"
+            for i, h in enumerate(data[0])
+        ]
+        return pd.DataFrame(data[1:], columns=headers)
 
 
 def read_verlofsaldi(file: IO[bytes] | str) -> pd.DataFrame:
